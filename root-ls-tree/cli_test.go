@@ -33,24 +33,22 @@ import (
 
 var benchmark_result string
 
-func wrap_walk_for_test(w fullpathWriter, tb testing.TB) {
-	fname := "../testdata/TMVA.root"
+func wrap_walk_for_test(w fullpathWriter, tb testing.TB, fname string) {
 	f, err := rootio.Open(fname)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	defer f.Close()
 
-	for _, k := range f.Keys() {
-		walk(w, k)
-	}
+	walk_file(w, f)
 }
 
-func TestCLI(t *testing.T) {
+func TestBigFileCLI(t *testing.T) {
 	var iowriter bytes.Buffer
 	w := fullpathWriter{pth: []byte(""), w: &iowriter}
 
-	wrap_walk_for_test(w, t)
+	fname := "../testdata/TMVA.root"
+	wrap_walk_for_test(w, t, fname)
 
 	reference := []byte("dataset/Method_BDTG/BDTG/MonitorNtuple	dataset/Method_BDT/BDT/MonitorNtuple	dataset/TestTree	dataset/TrainTree	")
 	if 0 != bytes.Compare(iowriter.Bytes(), reference) {
@@ -58,12 +56,38 @@ func TestCLI(t *testing.T) {
 	}
 }
 
-func BenchmarkCLI(b *testing.B) {
+func TestSmallFileCLI(t *testing.T) {
+	var iowriter bytes.Buffer
+	w := fullpathWriter{pth: []byte(""), w: &iowriter}
+
+	fname := "/home/pseyfert/coding/go/src/go-hep.org/x/hep/rootio/testdata/uproot/sample-6.14.00-uncompressed.root"
+	wrap_walk_for_test(w, t, fname)
+
+	reference := []byte("sample	")
+	if 0 != bytes.Compare(iowriter.Bytes(), reference) {
+		t.Fatalf("unexpected output.\nExpected:\n%s\nGot:\n%s\n", reference, iowriter.String())
+	}
+}
+
+func BenchmarkSmallCLI(b *testing.B) {
+	fname := "/home/pseyfert/coding/go/src/go-hep.org/x/hep/rootio/testdata/uproot/sample-6.14.00-uncompressed.root"
 	for n := 0; n < b.N; n++ {
 		var iowriter bytes.Buffer
 		w := fullpathWriter{pth: []byte(""), w: &iowriter}
 
-		wrap_walk_for_test(w, b)
+		wrap_walk_for_test(w, b, fname)
+
+		benchmark_result = iowriter.String()
+	}
+}
+
+func BenchmarkBigCLI(b *testing.B) {
+	fname := "../testdata/TMVA.root"
+	for n := 0; n < b.N; n++ {
+		var iowriter bytes.Buffer
+		w := fullpathWriter{pth: []byte(""), w: &iowriter}
+
+		wrap_walk_for_test(w, b, fname)
 
 		benchmark_result = iowriter.String()
 	}

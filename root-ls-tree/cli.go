@@ -62,24 +62,32 @@ prints full paths of contained trees.`)
 
 	var iowriter bytes.Buffer
 	w := fullpathWriter{pth: []byte(""), w: &iowriter}
-	for _, k := range f.Keys() {
-		walk(w, k)
-	}
+	walk_file(w, f)
 	fmt.Printf("%s\n", iowriter.String())
 }
 
+func walk_file(pth fullpathWriter, f *rootio.File) {
+	for _, k := range f.Keys() {
+		walk(pth, k)
+	}
+}
+
 func walk(pth fullpathWriter, k rootio.Key) {
-	obj := k.Value()
-	_, ok := obj.(rootio.Tree)
-	if ok {
-		fmt.Fprintf(&pth, "%s\t", k.Name())
+	kclassname := k.ClassName()
+	if kclassname == "TDirectory" {
+		obj := k.Value()
+		if dir, ok := obj.(rootio.Directory); ok {
+			w := newSubdir([]byte(k.Name()+"/"), pth)
+			for _, k := range dir.Keys() {
+				walk(*w, k)
+			}
+		}
 		return
 	}
-	if dir, ok := obj.(rootio.Directory); ok {
-		w := newSubdir([]byte(k.Name()+"/"), pth)
-		for _, k := range dir.Keys() {
-			walk(*w, k)
-		}
+	// hard coded types that inherit from TTree
+	if kclassname == "TTree" || kclassname == "TNtuple" || kclassname == "TChain" || kclassname == "TProofChain" || kclassname == "TNtupleD" || kclassname == "THbookTree" || kclassname == "TTreeSQL" {
+		fmt.Fprintf(&pth, "%s\t", k.Name())
+		return
 	}
 }
 
