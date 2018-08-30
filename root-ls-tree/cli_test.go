@@ -60,7 +60,7 @@ func TestSmallFileCLI(t *testing.T) {
 	var iowriter bytes.Buffer
 	w := fullpathWriter{pth: []byte(""), w: &iowriter}
 
-	fname := "/home/pseyfert/coding/go/src/go-hep.org/x/hep/rootio/testdata/uproot/sample-6.14.00-uncompressed.root"
+	fname := "../testdata/sample-6.14.00-uncompressed.root"
 	wrap_walk_for_test(w, t, fname)
 
 	reference := []byte("sample	")
@@ -70,7 +70,7 @@ func TestSmallFileCLI(t *testing.T) {
 }
 
 func BenchmarkSmallCLI(b *testing.B) {
-	fname := "/home/pseyfert/coding/go/src/go-hep.org/x/hep/rootio/testdata/uproot/sample-6.14.00-uncompressed.root"
+	fname := "../testdata/sample-6.14.00-uncompressed.root"
 	for n := 0; n < b.N; n++ {
 		var iowriter bytes.Buffer
 		w := fullpathWriter{pth: []byte(""), w: &iowriter}
