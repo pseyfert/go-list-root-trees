@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 
 	"go-hep.org/x/hep/rootio"
 )
@@ -84,10 +85,12 @@ func walk(pth fullpathWriter, k rootio.Key) {
 		}
 		return
 	}
-	// hard coded types that inherit from TTree
-	if kclassname == "TTree" || kclassname == "TNtuple" || kclassname == "TChain" || kclassname == "TProofChain" || kclassname == "TNtupleD" || kclassname == "THbookTree" || kclassname == "TTreeSQL" {
-		fmt.Fprintf(&pth, "%s\t", k.Name())
-		return
+	otyp := k.ObjectType()
+	if otyp != nil {
+		switch v := reflect.New(otyp).Elem().Interface(); v.(type) {
+		case rootio.Tree:
+			fmt.Fprintf(&pth, "%s\t", k.Name())
+		}
 	}
 }
 
