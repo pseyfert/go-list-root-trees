@@ -28,13 +28,13 @@ import (
 	"bytes"
 	"testing"
 
-	"go-hep.org/x/hep/rootio"
+	"go-hep.org/x/hep/groot"
 )
 
 var benchmark_result string
 
 func wrap_walk_for_test(w fullpathWriter, tb testing.TB, fname string) {
-	f, err := rootio.Open(fname)
+	f, err := groot.Open(fname)
 	if err != nil {
 		tb.Fatal(err)
 	}

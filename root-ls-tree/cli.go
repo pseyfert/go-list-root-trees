@@ -31,7 +31,8 @@ import (
 	"io"
 	"os"
 
-	"go-hep.org/x/hep/rootio"
+	"go-hep.org/x/hep/groot"
+	"go-hep.org/x/hep/groot/riofs"
 )
 
 func main() {
@@ -53,7 +54,7 @@ prints full paths of contained trees.`)
 
 	fname := flag.Args()[0]
 
-	f, err := rootio.Open(fname)
+	f, err := groot.Open(fname)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "rootio: failed to open [%s]: %v\n", fname, err)
 		os.Exit(1)
@@ -66,17 +67,17 @@ prints full paths of contained trees.`)
 	fmt.Printf("%s\n", iowriter.String())
 }
 
-func walk_file(pth fullpathWriter, f *rootio.File) {
+func walk_file(pth fullpathWriter, f *riofs.File) {
 	for _, k := range f.Keys() {
 		walk(pth, k)
 	}
 }
 
-func walk(pth fullpathWriter, k rootio.Key) {
+func walk(pth fullpathWriter, k riofs.Key) {
 	kclassname := k.ClassName()
-	if kclassname == "TDirectory" {
+	if kclassname == "TDirectoryFile" || kclassname == "TDirectory" {
 		obj := k.Value()
-		if dir, ok := obj.(rootio.Directory); ok {
+		if dir, ok := obj.(riofs.Directory); ok {
 			w := newSubdir([]byte(k.Name()+"/"), pth)
 			for _, k := range dir.Keys() {
 				walk(*w, k)
@@ -87,7 +88,6 @@ func walk(pth fullpathWriter, k rootio.Key) {
 	// hard coded types that inherit from TTree
 	if kclassname == "TTree" || kclassname == "TNtuple" || kclassname == "TChain" || kclassname == "TProofChain" || kclassname == "TNtupleD" || kclassname == "THbookTree" || kclassname == "TTreeSQL" {
 		fmt.Fprintf(&pth, "%s\t", k.Name())
-		return
 	}
 }
 
